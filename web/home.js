@@ -60,12 +60,13 @@
 
   // MARK: - Apps on the shelf
 
-  /** Shelf apps in this order when installed, like the Android app: key, LG app id, name on the TV, brand gradient. */
+  /** Shelf apps in this order when installed, like the Android app: key, LG app id, name on the TV, brand gradient
+   * and, when true, the name on the tile instead of the icon. */
   var SHELF = [
     ['hdmi2', /^source:HDMI:2$|hdmi2$/, /(?!)/, ['#00E5FF', '#0047B3']],
-    ['hdmi4', /^source:HDMI:4$|hdmi4$/, /(?!)/, ['#7B2CFF', '#22086E']],
+    ['hdmi1', /^source:HDMI:1$|hdmi1$/, /(?!)/, ['#7B2CFF', '#22086E']],
     ['netflix', /^netflix$/, /netflix/i, ['#0A0A0A', '#000000']],
-    ['youtube', /youtube/, /^youtube$/i, ['#1C1C1E', '#09090A']],
+    ['youtube', /youtube/i, /^youtube$/i, ['#FF0033', '#A3001F'], true],
     ['browser', /^org\.tizen\.browser$|browser/, /^internet$|browser/i, ['#FF2BD6', '#6A0880']],
     ['prime', /^amazon$/, /prime video|amazon/i, ['#2AA8FF', '#0A68D4']],
     ['disney', /disney/, /disney/i, ['#173584', '#08143F']],
@@ -80,10 +81,10 @@
   var MAX_SHELF = 8;
 
   /** The shelf until it's edited on the TV: these SHELF keys only, in this order. */
-  var START = ['hdmi2', 'hdmi4', 'youtube', 'browser'];
+  var START = ['hdmi2', 'hdmi1', 'youtube', 'browser'];
 
   /** Inputs that go on the shelf as tiles, with the names they show (also used in the drawer). */
-  var INPUT_NAMES = {hdmi2: 'TV', hdmi4: 'PS5'};
+  var INPUT_NAMES = {hdmi2: 'TV', hdmi1: 'PS5'};
 
   function shelfKey(app) {
     for (var i = 0; i < SHELF.length; i++) if (SHELF[i][1].test(app.id) || SHELF[i][2].test(app.title)) return SHELF[i];
@@ -111,7 +112,7 @@
     box.style.background = 'linear-gradient(' + top + ', ' + bottom + ')';
     var word = el('div', 'word', box, app.title);
     if (wordSize) word.style.fontSize = wordSize + 'px';
-    if (app.icon) {
+    if (app.icon && !(k && k[4])) {   // k[4]: the name reads better than the TV's icon for this app
       var img = el('img', '', box);
       word.style.visibility = 'hidden';
       img.onerror = function () { img.parentNode.removeChild(img); word.style.visibility = ''; };
