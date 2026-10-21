@@ -191,6 +191,7 @@ var TV = (function () {
 
     /** Opens an app (or an input); done(ok). */
     launch: function (id, params, done) {
+      if (id.indexOf('url:') === 0) { this.open(id.slice(4), done); return; }
       if (samsung) {
         if (id.indexOf('source:') === 0) samsungSource(id, done);
         else samsungLaunch(id, done);
@@ -203,6 +204,22 @@ var TV = (function () {
       luna('luna://com.webos.applicationManager/launch', params ? {id: id, params: params} : {id: id}, function (res) {
         if (done) done(!!res);
       });
+    },
+
+    /** Opens a web address in the TV's browser; done(ok). */
+    open: function (url, done) {
+      if (samsung) {
+        try {
+          var control = new window.tizen.ApplicationControl('http://tizen.org/appcontrol/operation/view', url, null, null, []);
+          window.tizen.application.launchAppControl(control, 'org.tizen.browser', function () { if (done) done(true); },
+              function () { if (done) done(false); });
+        } catch (e) {
+          if (done) done(false);
+        }
+        return;
+      }
+      if (webos) { this.launch('com.webos.app.browser', {target: url}, done); return; }
+      if (done) setTimeout(function () { done(true); }, 0);
     },
 
     /** The antenna and HDMI inputs; `connected` when the TV says a device is on (when it tells). */

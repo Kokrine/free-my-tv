@@ -67,6 +67,8 @@
     ['hdmi1', /^source:HDMI:1$|hdmi1$/, /(?!)/, ['#7B2CFF', '#22086E']],
     ['netflix', /^netflix$/, /netflix/i, ['#0A0A0A', '#000000']],
     ['youtube', /youtube/i, /^youtube$/i, ['#FF0033', '#A3001F'], true],
+    ['liveball', /^url:https:\/\/liveball\.sx/, /(?!)/, ['#00C853', '#00602A'], true],
+    ['gemovie', /^url:https:\/\/ge\.movie/, /(?!)/, ['#FF9100', '#B23C00'], true],
     ['browser', /^org\.tizen\.browser$|browser/, /^internet$|browser/i, ['#FF2BD6', '#6A0880']],
     ['prime', /^amazon$/, /prime video|amazon/i, ['#2AA8FF', '#0A68D4']],
     ['disney', /disney/, /disney/i, ['#173584', '#08143F']],
@@ -81,7 +83,10 @@
   var MAX_SHELF = 8;
 
   /** The shelf until it's edited on the TV: these SHELF keys only, in this order. */
-  var START = ['hdmi2', 'hdmi1', 'youtube', 'browser'];
+  var START = ['hdmi2', 'hdmi1', 'youtube', 'liveball', 'gemovie', 'browser'];
+
+  /** Websites on the shelf: name on the tile, address. */
+  var SITES = [['Liveball', 'https://liveball.sx'], ['GE Movie', 'https://ge.movie']];
 
   /** Inputs that go on the shelf as tiles, with the names they show (also used in the drawer). */
   var INPUT_NAMES = {hdmi2: 'TV', hdmi1: 'PS5'};
@@ -865,6 +870,8 @@
           inputs[i].label = name;
           apps.push({id: inputs[i].id, title: name, icon: '', color: ''});
         }
+        // So do the websites: TV.launch opens a "url:" id in the TV's browser.
+        for (var s = 0; s < SITES.length; s++) apps.push({id: 'url:' + SITES[s][1], title: SITES[s][0], icon: '', color: ''});
         pickShelf();
         if (done) done();
       });
