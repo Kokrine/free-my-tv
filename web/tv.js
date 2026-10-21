@@ -97,10 +97,37 @@ var TV = (function () {
 
   function samsungLaunch(id, done) {
     try {
-      window.tizen.application.launch(id, function () { if (done) done(true); }, function () { if (done) done(false); });
+      window.tizen.application.launch(id, function () {
+        if (id !== self && id !== SAMSUNG_VIEWER) samsungWatch(id);
+        if (done) done(true);
+      }, function () { if (done) done(false); });
     } catch (e) {
       if (done) done(false);
     }
+  }
+
+  var watchTimer = 0;
+
+  /**
+   * Back in an app closes it, and Samsung then shows its own home: while an app opened from here runs, check every
+   * few seconds whether it's still there, and come back to the front once it closed (needs background-support).
+   */
+  function samsungWatch(id) {
+    clearInterval(watchTimer);
+    var seen = false, until = Date.now() + 3 * 3600000;
+    watchTimer = setInterval(function () {
+      if (Date.now() > until) { clearInterval(watchTimer); return; }
+      try {
+        window.tizen.application.getAppsContext(function (list) {
+          for (var i = 0; i < list.length; i++) if (list[i].appId === id) { seen = true; return; }
+          if (!seen) return;   // not started yet
+          clearInterval(watchTimer);
+          samsungLaunch(self);
+        }, function () {});
+      } catch (e) {
+        clearInterval(watchTimer);
+      }
+    }, 1500);
   }
 
   /** The video sources the TV reports ([{type: 'TV' | 'HDMI' | ..., number}]), or null when it doesn't tell. */
@@ -238,6 +265,9 @@ var TV = (function () {
       if (samsung) samsungSettings(done);
       else this.launch('com.palm.app.settings', null, done);
     },
+
+    /** Free My TV is in front again: no app to wait for. */
+    stopWatching: function () { clearInterval(watchTimer); },
 
     /** Back on the first screen: back to wherever the person came from. */
     back: function () {
