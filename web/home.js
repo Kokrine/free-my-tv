@@ -62,8 +62,11 @@
 
   /** Shelf apps in this order when installed, like the Android app: key, LG app id, name on the TV, brand gradient. */
   var SHELF = [
+    ['hdmi2', /^source:HDMI:2$|hdmi2$/, /(?!)/, ['#00E5FF', '#0047B3']],
+    ['hdmi4', /^source:HDMI:4$|hdmi4$/, /(?!)/, ['#7B2CFF', '#22086E']],
     ['netflix', /^netflix$/, /netflix/i, ['#0A0A0A', '#000000']],
     ['youtube', /youtube/, /^youtube$/i, ['#1C1C1E', '#09090A']],
+    ['browser', /^org\.tizen\.browser$|browser/, /^internet$|browser/i, ['#FF2BD6', '#6A0880']],
     ['prime', /^amazon$/, /prime video|amazon/i, ['#2AA8FF', '#0A68D4']],
     ['disney', /disney/, /disney/i, ['#173584', '#08143F']],
     ['max', /hbo|wbd/, /^(hbo )?max$|hbo max/i, ['#5C30E8', '#221684']],
@@ -75,6 +78,12 @@
     ['spotify', /spotify/, /spotify/i, ['#1DB954', '#0F7A36']]
   ];
   var MAX_SHELF = 8;
+
+  /** The shelf until it's edited on the TV: these SHELF keys only, in this order. */
+  var START = ['hdmi2', 'hdmi4', 'youtube', 'browser'];
+
+  /** Inputs that go on the shelf as tiles, with the names they show (also used in the drawer). */
+  var INPUT_NAMES = {hdmi2: 'TV', hdmi4: 'PS5'};
 
   function shelfKey(app) {
     for (var i = 0; i < SHELF.length; i++) if (SHELF[i][1].test(app.id) || SHELF[i][2].test(app.title)) return SHELF[i];
@@ -120,6 +129,7 @@
       }
     } else {
       for (var s = 0; s < SHELF.length && out.length < MAX_SHELF; s++) {
+        if (START.indexOf(SHELF[s][0]) < 0) continue;
         for (var a = 0; a < apps.length; a++) {
           if ((SHELF[s][1].test(apps[a].id) || SHELF[s][2].test(apps[a].title)) && out.indexOf(apps[a]) < 0) { out.push(apps[a]); break; }
         }
@@ -351,9 +361,15 @@
     for (var o = 0; o < old.length; o++) d.removeChild(old[o]);
     var wx = Prefs.weather(), coins = Data.activeCoins(), qt = coins.length > 0;
     var split = 80 + 1760 * 0.585;
+    // The weather also sits on the home screen itself, next to the clock (shown when there are no picks).
+    var main = $('mainweather');
+    main.innerHTML = '';
+    main.style.display = wx ? '' : 'none';
+    if (wx) { main.style.width = '1000px'; renderWeather(main); }
     if (wx) {
       var w = el('div', 'panel glass', d);
       w.id = 'weather';
+      w.className += ' wx';
       w.style.left = '80px';
       w.style.width = ((qt ? split - 16 : 1840) - 80) + 'px';
       renderWeather(w);
@@ -740,8 +756,9 @@
 
   // MARK: - Night, clock, screensaver
 
+  // The neon city background is dark at any hour, so the light text of the night look always applies.
   function checkNight() {
-    setClass(body, 'night', Data.isNight(Date.now()));
+    setClass(body, 'night', true);
   }
 
   var saverOn = false, idleAt = Date.now(), saverIndex = 0, saverTimer = 0, SAVER_AFTER = 5 * 60000;
@@ -840,6 +857,14 @@
       pickShelf();
       TV.inputs(function (list2) {
         inputs = list2;
+        // Named inputs become shelf tiles too: TV.launch opens an input id like an app's.
+        for (var i = 0; i < inputs.length; i++) {
+          var name = INPUT_NAMES[inputs[i].key];
+          if (!name) continue;
+          inputs[i].label = name;
+          apps.push({id: inputs[i].id, title: name, icon: '', color: ''});
+        }
+        pickShelf();
         if (done) done();
       });
     });
