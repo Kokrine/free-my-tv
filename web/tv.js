@@ -79,6 +79,13 @@ var TV = (function () {
           if (icon && icon.indexOf('://') < 0) icon = 'file://' + icon;
           out.push({id: a.id, title: a.name || a.id, icon: icon, color: ''});
         }
+        // Some firmware leaves these out of getAppsInfo though they're installed and launch by id.
+        var known = [['9Ur5IzDKqV.TizenYouTube', 'YouTube'], ['org.tizen.browser', 'Browser']];
+        for (var k = 0; k < known.length; k++) {
+          var have = false;
+          for (var j = 0; j < out.length; j++) if (out[j].id === known[k][0]) have = true;
+          if (!have) out.push({id: known[k][0], title: known[k][1], icon: '', color: ''});
+        }
         // Smart Hub keeps its own order, which isn't readable: the same alphabetical order as All Apps elsewhere.
         out.sort(function (x, y) { var a = x.title.toLowerCase(), b = y.title.toLowerCase(); return a < b ? -1 : a > b ? 1 : 0; });
         done(out);

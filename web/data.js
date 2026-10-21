@@ -49,7 +49,8 @@ var Prefs = (function () {
     weather: function () { return pick('weather', true); },
     quotes: function () { return pick('quotes', CONFIG.showCrypto !== false); },
     coin: function (i) { var c = pick('coins', null); return c ? c[i] !== false : true; },
-    shelf: function () { return pick('shelf', null); },
+    // 'shelf2': a shelf saved by an older version (before inputs could be on it) doesn't hide the new one.
+    shelf: function () { return pick('shelf2', null); },
     set: function (name, value) { v[name] = value; save(); this.version++; },
     setCoin: function (i, on) {
       var c = (pick('coins', null) || [true, true, true, true]).slice();

@@ -602,7 +602,7 @@
       ids.splice(at, 1);
       ids.splice(to, 0, app.id);
     }
-    Prefs.set('shelf', ids);
+    Prefs.set('shelf2', ids);
     pickShelf();
     renderShelf();
     var again = editList();
